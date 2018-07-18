@@ -1,13 +1,14 @@
 package com.cogetel
 
 //#quick-start-server
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import akka.actor.{ ActorRef, ActorSystem }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 //#main-class
 object QuickstartServer extends App with CustomerRoutes {

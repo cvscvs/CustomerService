@@ -2,22 +2,18 @@ package com.cogetel
 
 import akka.actor.{ ActorRef, ActorSystem }
 import akka.event.Logging
-
-import scala.concurrent.duration._
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.directives.MethodDirectives.delete
 import akka.http.scaladsl.server.directives.MethodDirectives.get
-import akka.http.scaladsl.server.directives.MethodDirectives.post
-import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.http.scaladsl.server.directives.PathDirectives.path
-
-import scala.concurrent.Future
-import com.cogetel.CustomerActor._
+import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.pattern.ask
 import akka.util.Timeout
+import com.cogetel.CustomerActor.{ GetCustomer, GetCustomers }
 import com.typesafe.config.Config
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 //#user-routes-class
 trait CustomerRoutes extends JsonSupport {
@@ -50,7 +46,9 @@ trait CustomerRoutes extends JsonSupport {
               val customers: Future[Customers] =
                 (customerActor ? GetCustomers).mapTo[Customers]
               complete(customers)
-            },
+
+            }
+          /*,
             post {
               entity(as[Customer]) { customer =>
                 val customerCreated: Future[ActionPerformed] =
@@ -60,17 +58,17 @@ trait CustomerRoutes extends JsonSupport {
                   complete((StatusCodes.Created, performed))
                 }
               }
-            }
+            }*/
           )
         },
         //#customers-get-post
         //#customers-get-delete
-        path(Segment) { name =>
+        /*path(Segment) { name =>
           concat(
             get {
               //#retrieve-customer-info
-              val maybeCustomer: Future[Option[Customer]] =
-                (customerActor ? GetCustomer(name)).mapTo[Option[Customer]]
+              val maybeCustomer: Future[ActionPerformed] =
+                (customerActor ? GetCustomer(name)).mapTo[ActionPerformed]
               rejectEmptyResponse {
                 complete(maybeCustomer)
               }
@@ -87,6 +85,18 @@ trait CustomerRoutes extends JsonSupport {
               //#customers-delete-logic
             }
           )
+        }*/
+        path(Segment) { custId =>
+          concat(
+            get {
+              val maybeCustomer: Future[Option[Customer]] =
+                (customerActor ? GetCustomer(custId)).mapTo[Option[Customer]]
+              rejectEmptyResponse {
+                complete(maybeCustomer)
+              }
+            }
+          )
+
         }
       )
       //#customers-get-delete
