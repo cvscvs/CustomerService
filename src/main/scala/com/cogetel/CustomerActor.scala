@@ -4,14 +4,15 @@ package com.cogetel
 import akka.actor.{ Actor, ActorLogging, Props }
 
 //#customer-case-classes
-final case class Customer(custId: Long, custName: String, vatAddress: String)
+final case class Customer(custId: Long, custName: String, vatAddress: Option[String])
 final case class Customers(customers: Seq[Customer])
 //#customer-case-classes
 
 object CustomerActor {
   final case class ActionPerformed(description: String)
   final case class GetCustomer(custId: String)
-  final case object GetCustomers
+  final case class GetCustomers()
+  final case class UpdateCustomer(customer: Customer)
   /*final case class CreateCustomer(ctusomer: Customer)
 
   final case class DeleteCustomer(name: String)*/
@@ -27,7 +28,7 @@ class CustomerActor extends Actor with ActorLogging {
 
   def receive: Receive = {
     case GetCustomers =>
-      sender() ! getCustomers()
+      sender() ! Customers(getCustomers())
     /*case CreateCustomer(customer) =>
     customers += customer
     sender() ! ActionPerformed(s"Customer ${customer.name} created.")*/
@@ -36,7 +37,9 @@ class CustomerActor extends Actor with ActorLogging {
     /*case DeleteCustomer(name) =>
       customers.find(_.name == name) foreach { customer => customers -= customer }
       sender() ! ActionPerformed(s"Customer ${name} deleted.")*/
-
+    case UpdateCustomer(customer) =>
+      updateCustomer(customer)
+      sender() ! ActionPerformed(s"Customer ${customer.custId}:${customer.custName} updated.")
   }
 
 }

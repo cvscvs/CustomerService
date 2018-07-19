@@ -4,7 +4,8 @@ import scalikejdbc._
 
 trait tCustomerRepository {
   def getCustomerById(custId: String): Option[Customer]
-  def getCustomers(): Seq[Customer]
+  def getCustomers: Seq[Customer]
+  def updateCustomer(cust: Customer)
 }
 
 object CustomerRepository extends tCustomerRepository {
@@ -30,7 +31,7 @@ object CustomerRepository extends tCustomerRepository {
           Customer(
             custId = rs.long("CUST_ID"),
             custName = rs.string("CUST_NAME"),
-            vatAddress = rs.string("VAT_ADDRESS")
+            vatAddress = rs.stringOpt("VAT_ADDRESS")
 
           )).single.apply()
     }
@@ -44,11 +45,16 @@ object CustomerRepository extends tCustomerRepository {
           Customer(
             custId = rs.long("CUST_ID"),
             custName = rs.string("CUST_NAME"),
-            vatAddress = rs.string("VAT_ADDRESS")
+            vatAddress = rs.stringOpt("VAT_ADDRESS")
           )).list.apply()
 
     }
-
     list
+  }
+
+  override def updateCustomer(cust: Customer) = {
+    DB localTx { implicit session =>
+      sql"""UPDATE TBLCUSTOMER SET VAT_ADDRESS = ${cust.vatAddress} WHERE CUST_ID = ${cust.custId}""".update.apply()
+    }
   }
 }

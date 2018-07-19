@@ -2,6 +2,7 @@ package com.cogetel
 
 import akka.actor.{ ActorRef, ActorSystem }
 import akka.event.Logging
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.MethodDirectives.get
@@ -9,7 +10,7 @@ import akka.http.scaladsl.server.directives.PathDirectives.path
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.pattern.ask
 import akka.util.Timeout
-import com.cogetel.CustomerActor.{ GetCustomer, GetCustomers }
+import com.cogetel.CustomerActor.{ ActionPerformed, GetCustomer, GetCustomers, UpdateCustomer }
 import com.typesafe.config.Config
 
 import scala.concurrent.Future
@@ -47,6 +48,16 @@ trait CustomerRoutes extends JsonSupport {
                 (customerActor ? GetCustomers).mapTo[Customers]
               complete(customers)
 
+            },
+            put {
+              entity(as[Customer]) { customer =>
+                val customerUpdated: Future[ActionPerformed] =
+                  (customerActor ? UpdateCustomer(customer)).mapTo[ActionPerformed]
+                onSuccess(customerUpdated) { performed =>
+                  log.info("Update customer [{}]: {}", customer.custId, performed.description)
+                  complete((StatusCodes.Created, performed))
+                }
+              }
             }
           /*,
             post {
